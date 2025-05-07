@@ -1,0 +1,68 @@
+server:
+  port: 9090
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      # 是否自動提交偏移量：
+      # false 表示需要手動提交（更安全，可避免消息重複或丟失）。
+      enable-auto-commit: false
+
+
+      # 自動提交間隔時間（毫秒）：如果啟用了自動提交，則每隔此時間提交偏移量。
+      # 默認為 5000 毫秒（5 秒）。
+      auto-commit-interval: 100ms
+
+      # 配置消费者消息offset是否自动重置(消费者重连会能够接收最开始的消息)
+      auto-offset-reset: earliest
+
+      # 鍵的反序列化器：用於將字節數組反序列化為消息的鍵。
+      # 默認使用 Kafka 提供的 StringDeserializer。
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+
+      # 值的反序列化器：用於將字節數組反序列化為消息的值。
+      # 默認使用 Kafka 提供的 StringDeserializer。
+      value-deserializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      properties:
+        # 消費者的會話超時時間（毫秒）：如果消費者未在此時間內發送心跳，則認為其已失效。
+        # 默認值通常為 30000 毫秒（30 秒）。
+        session.timeout.ms: 15000
+
+    producer:
+      # 生產者重試次數，如果消息發送失敗，將會重試的次數 默認為0(不重試)
+      retries: 1
+
+      # 批次大小: 當積累的消息大小達到此值，生產者將發送消息(單位為字節) 默認為 16384(16KB)
+      batch-size: 16384
+
+      # 緩衝區記憶體大小: 生產者用來緩存尚未發送到 Kafka 的記憶體量(單位為字節) 默認為 33554432(32 MB)
+      buffer-memory: 33554432
+
+      # 鍵的序列化器：用於將消息的鍵轉換為字節數組。
+      # 默認使用 Kafka 提供的 StringSerializer。
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+      # 值的序列化器：用於將消息的值轉換為字節數組。
+      # 默認使用 Kafka 提供的 StringSerializer。
+      # 发送的对象信息变为json格式
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      properties:
+        # 延遲時間（毫秒）：即使批次大小未達到限制，也會在此延遲後發送消息。
+        # 默認為 0，表示不延遲。
+        linger.ms: 1
+kafka:
+  topic:
+    chat_rooms:
+      - chat_room_1
+      - chat_room_2
+      - chat_room_3
+    my-topic: my-topic
+    test_iris: test_iris
+
+
+#logging:
+  level.org.springframework.boot.autoconfigure: error #spring的自动装配日志只打error，否则debug输出的会打印很多自动装配的log信息到控制台
+  config: classpath:logback-spring.xml
