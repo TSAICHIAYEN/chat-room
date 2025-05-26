@@ -8,7 +8,6 @@ spring:
       # false 表示需要手動提交（更安全，可避免消息重複或丟失）。
       enable-auto-commit: false
 
-
       # 自動提交間隔時間（毫秒）：如果啟用了自動提交，則每隔此時間提交偏移量。
       # 默認為 5000 毫秒（5 秒）。
       auto-commit-interval: 100ms
@@ -20,39 +19,48 @@ spring:
       # 默認使用 Kafka 提供的 StringDeserializer。
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
-
-      # 值的反序列化器：用於將字節數組反序列化為消息的值。
-      # 默認使用 Kafka 提供的 StringDeserializer。
-      value-deserializer: org.springframework.kafka.support.serializer.JsonSerializer
+      # 消息的 value 的反序列化器（建議使用 ErrorHandling 包裝）：
+      # ErrorHandlingDeserializer 可防止反序列化失敗導致 Consumer crash。
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 
       properties:
-        # 消費者的會話超時時間（毫秒）：如果消費者未在此時間內發送心跳，則認為其已失效。
-        # 默認值通常為 30000 毫秒（30 秒）。
+        # 指定 ErrorHandlingDeserializer 實際要用的反序列化器（這裡是 JSON）
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
+        # 指定可以信任的 Java package，否則會反序列化失敗（出於安全性考量）。
+        # "*" 表示信任所有 packages，開發階段可用，正式環境請指定具體路徑以防範反序列化攻擊。
+        spring.json.trusted.packages: "com.iris.chatroom.model"
+
+        # 消費者的會話超時時間（毫秒）：
+        # 如果 consumer 在這個時間內沒有發送心跳，Kafka 會認為該 consumer 掛掉了。
         session.timeout.ms: 15000
 
     producer:
-      # 生產者重試次數，如果消息發送失敗，將會重試的次數 默認為0(不重試)
+      # 生產者重試次數：如果消息發送失敗，將會重試的次數。默認為 0（不重試）。
       retries: 1
 
-      # 批次大小: 當積累的消息大小達到此值，生產者將發送消息(單位為字節) 默認為 16384(16KB)
+      # 批次大小：當積累的消息總大小達到此值時，生產者將發送消息（單位：byte）。默認為 16384（16KB）。
+      # 建議搭配 linger.ms 一起使用以提高吞吐量。
       batch-size: 16384
 
-      # 緩衝區記憶體大小: 生產者用來緩存尚未發送到 Kafka 的記憶體量(單位為字節) 默認為 33554432(32 MB)
+      # 緩衝區記憶體大小：生產者可用於緩衝等待發送到 Kafka 的訊息總記憶體大小（單位：byte）。
+      # 默認為 33554432（32MB）。這是所有未發送訊息的總記憶體大小限制。
       buffer-memory: 33554432
 
-      # 鍵的序列化器：用於將消息的鍵轉換為字節數組。
-      # 默認使用 Kafka 提供的 StringSerializer。
+      # 鍵的序列化器：用於將消息鍵轉為位元組陣列。通常是 String。
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
 
-      # 值的序列化器：用於將消息的值轉換為字節數組。
-      # 默認使用 Kafka 提供的 StringSerializer。
-      # 发送的对象信息变为json格式
+      # 值的序列化器：用於將消息值轉為位元組陣列。這裡改用 Spring 提供的 JsonSerializer 將物件轉成 JSON 格式。
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
       properties:
-        # 延遲時間（毫秒）：即使批次大小未達到限制，也會在此延遲後發送消息。
-        # 默認為 0，表示不延遲。
+        # 延遲時間（毫秒）：即使尚未達到批次大小，當延遲達到這個時間時也會發送消息。
+        # 默認為 0，這裡設為 1 可讓 producer 等待 1 毫秒，增加機會將多筆消息批次發送，提高吞吐量。
         linger.ms: 1
+
+    admin:
+      # 自動建立 topic 如果是prod的環境建議關閉
+      auto-create: true
 kafka:
   topic:
     chat_rooms:
@@ -61,7 +69,6 @@ kafka:
       - chat_room_3
     my-topic: my-topic
     test_iris: test_iris
-
 
 #logging:
   level.org.springframework.boot.autoconfigure: error #spring的自动装配日志只打error，否则debug输出的会打印很多自动装配的log信息到控制台

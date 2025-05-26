@@ -1,6 +1,6 @@
 package com.iris.chatroom.service.consumer;
 
-import com.example.myfirstspringboot.dto.ChatMessage;
+import com.iris.chatroom.model.ChatMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -11,12 +11,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ChatConsumer {
+public class Consumer {
 
     private final SimpMessagingTemplate template;
 
-//    @KafkaListener(topics = "#{T(java.util.stream.Collectors).toList().stream().filter(t -> chatRooms.contains(t)).collect(T(java.util.stream.Collectors).toList())}", groupId = "chat-group")
-
+    // Kafka 有資料進來，這個 method 就會自動跑
     @KafkaListener(topics = "#{kafkaTopicConfig.getChatRooms()}", groupId = "chat-group")
     public void listen(@Header("kafka_receivedTopic") String topic, ChatMessage message) {
 

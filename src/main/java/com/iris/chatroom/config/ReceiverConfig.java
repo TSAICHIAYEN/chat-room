@@ -27,7 +27,7 @@ public class ReceiverConfig {
         // 使用 JsonDeserializer 來處理不同的類型
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class.getName());
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.iris.chatroom.dto"); // 設置可反序列化的包
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.iris.chatroom.model"); // 設置可反序列化的包
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "consumer-group");
         return props;
     }
