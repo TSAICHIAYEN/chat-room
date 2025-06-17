@@ -23,7 +23,7 @@
 2. docker build -t my-chat-app . (image 名稱 如果YAML 裡寫的是別的 這裡也要一致)
 
 ### 4. (如果有) 刪除原本的 Deployment
-kubectl delete -f k8s-deployment.yaml
+- kubectl delete -f k8s-deployment.yaml
 
 ### 5. 部署新的 Deployment + Service
 - kubectl apply -f k8s-deployment.yaml
