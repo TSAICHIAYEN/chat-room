@@ -1,0 +1,36 @@
+# Deployment
+apiVersion: apps/v1            # 使用的 API 版本，這是 Kubernetes 的標準版本
+kind: Deployment               # 資源類型是 Deployment，用來部署 Pod 並自動管理
+metadata:
+  name: chat-deployment        # Deployment 的名稱（可以自訂）
+spec:
+  replicas: 1                  # 要啟動的 Pod 數量，這裡是啟動 1 個
+  selector:
+    matchLabels:
+      app: chat                # 這個 Deployment 會管理所有有 app=chat 的 Pod
+  template:                    # 這是 Pod 的模板，描述每個 Pod 長什麼樣子
+    metadata:
+      labels:
+        app: chat              # 為這個 Pod 設定 label，跟 selector 對應
+    spec:
+      containers:
+        - name: chat           # container 名稱（隨便取）
+          image: my-chat-app   # 使用的 Docker image 名稱
+          imagePullPolicy: IfNotPresent  # 如果本地有 image 就不用從遠端拉
+          ports:
+            - containerPort: 9090       # container 裡面要開的 port（我的 Spring Boot專案 設 9090）
+
+---
+# Service
+apiVersion: v1                 # 使用的 API 版本
+kind: Service                  # 建立一個 Service（服務）
+metadata:
+  name: chat-service           # Service 的名稱（可以自訂）
+spec:
+  type: NodePort               # Service 類型為 NodePort（從本機瀏覽器連進來）
+  selector:
+    app: chat                  # 這個 Service 會把流量導向所有 label 是 app=chat 的 Pod
+  ports:
+    - port: 9090               # Service 對外開的 port（虛擬 port）
+      targetPort: 9090         # 要導向 Pod 的哪個 port（對應上面 containerPort）
+      nodePort: 30090          # 主機上實際開的 port，瀏覽器要用這個 port 連進來
